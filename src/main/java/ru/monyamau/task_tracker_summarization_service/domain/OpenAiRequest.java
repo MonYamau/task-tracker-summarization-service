@@ -1,4 +1,4 @@
-package ru.monyamau.task_tracker_summarization_service.domain.openAi;
+package ru.monyamau.task_tracker_summarization_service.domain;
 
 import java.util.List;
 

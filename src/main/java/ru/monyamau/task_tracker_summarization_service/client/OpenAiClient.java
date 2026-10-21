@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
 import ru.monyamau.task_tracker_summarization_service.domain.openAi.OpenAiRequest;
 import ru.monyamau.task_tracker_summarization_service.domain.openAi.OpenAiResponse;
+import ru.monyamau.task_tracker_summarization_service.domain.OpenAiRequest;
+import ru.monyamau.task_tracker_summarization_service.domain.OpenAiResponse;
 
 @Component
 @FeignClient(
