@@ -13,7 +13,7 @@ import ru.monyamau.task_tracker_summarization_service.domain.OpenAiResponse;
 )
 public interface OpenAiClient {
     @PostMapping(value = "${llm.endpoint}",
-    consumes = MediaType.APPLICATION_JSON_VALUE,
-    produces = MediaType.APPLICATION_JSON_VALUE)
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     OpenAiResponse createCompletion(@RequestBody OpenAiRequest request);
 }

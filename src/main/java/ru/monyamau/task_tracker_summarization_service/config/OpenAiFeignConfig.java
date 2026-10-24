@@ -20,7 +20,7 @@ public class OpenAiFeignConfig {
         return (methodKey, response) -> {
             int status = response.status();
             if (status == REQUEST_LIMITING_ERROR || status == INTERNAL_SERVER_ERROR || status == BAD_GATEWAY_ERROR
-            || status == SERVICE_UNAVAILABLE_ERROR || status == GATEWAY_TIMEOUT_ERROR) {
+                    || status == SERVICE_UNAVAILABLE_ERROR || status == GATEWAY_TIMEOUT_ERROR) {
                 return new RetryableException(status, response.reason(), response.request().httpMethod(),
                         (Long) null, response.request());
             }
