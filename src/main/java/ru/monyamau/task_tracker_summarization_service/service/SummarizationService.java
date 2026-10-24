@@ -1,5 +1,7 @@
 package ru.monyamau.task_tracker_summarization_service.service;
 
+import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.monyamau.task_tracker_summarization_service.client.OpenAiClient;
@@ -10,10 +12,12 @@ import ru.monyamau.task_tracker_summarization_service.domain.TaskPromptContent;
 import ru.monyamau.task_tracker_summarization_service.dto.request.PersonalTaskCollectionRequestDto;
 import ru.monyamau.task_tracker_summarization_service.dto.request.TaskRequestDto;
 import ru.monyamau.task_tracker_summarization_service.dto.response.PersonalReportResponseDto;
+import ru.monyamau.task_tracker_summarization_service.exception.LlmClientException;
 import ru.monyamau.task_tracker_summarization_service.util.PromptUtil;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class SummarizationService {
     private final OpenAiClient openAiClient;
@@ -36,7 +40,12 @@ public class SummarizationService {
     }
 
     private OpenAiResponse handleCompletionCreating(OpenAiRequest openAiRequest) {
+        try {
             return openAiClient.createCompletion(openAiRequest);
+        } catch (FeignException e) {
+            log.error("Не удалось реализовать отчёт для пользователя при попытке обращения к LLM", e);
+            throw new LlmClientException("Возникла ошибка при попытке обращения к LLM API", e);
+        }
     }
 
     private TaskPromptContent convert(TaskRequestDto taskDto) {
