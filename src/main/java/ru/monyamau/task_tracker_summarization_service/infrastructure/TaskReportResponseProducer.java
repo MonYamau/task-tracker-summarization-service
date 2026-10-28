@@ -25,14 +25,14 @@ public class TaskReportResponseProducer {
             kafkaTemplate.send(topic, responseDto).get(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new TaskReportPublisherException("Попытка публикации задачи в Kafka была прервана", e);
+            throw new TaskReportPublisherException("Попытка публикации задачи о реализации отчёта в Kafka была прервана", e);
         } catch (TimeoutException e) {
-            throw new TaskReportPublisherException("Не удалось получить подтверждение от Kafka о получении задачи", e);
+            throw new TaskReportPublisherException("Не удалось получить подтверждение от Kafka о получении задачи о реализации отчёта", e);
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
-            throw new TaskReportPublisherException("Не удалось опубликовать задачу в Kafka", cause);
+            throw new TaskReportPublisherException("Не удалось опубликовать задачу о реализации отчёта в Kafka", cause);
         } catch (Exception e) {
-            throw new TaskReportPublisherException("Ошибка при попытке опубликовать задачу в Kafka", e);
+            throw new TaskReportPublisherException("Ошибка при попытке опубликовать задачу о реализации отчёта в Kafka", e);
         }
     }
 }
