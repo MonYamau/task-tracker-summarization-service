@@ -1,4 +1,4 @@
-package ru.monyamau.task_tracker_summarization_service.infrastructure;
+package ru.monyamau.task_tracker_summarization_service.broker;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
