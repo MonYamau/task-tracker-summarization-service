@@ -13,23 +13,31 @@ public class OpenAiFeignConfig {
     private static final int BAD_GATEWAY_ERROR = 502;
     private static final int SERVICE_UNAVAILABLE_ERROR = 503;
     private static final int GATEWAY_TIMEOUT_ERROR = 504;
+    private static final long PERIOD_MS = 3000L;
+    private static final long MAX_PERIOD_MS = 45000L;
+    private static final int NUM_OF_ATTEMPTS = 3;
 
     @Bean
     public ErrorDecoder errorDecoder() {
         ErrorDecoder errorDecoder = new ErrorDecoder.Default();
         return (methodKey, response) -> {
+            Exception decodedException = errorDecoder.decode(methodKey, response);
             int status = response.status();
-            if (status == REQUEST_LIMITING_ERROR || status == INTERNAL_SERVER_ERROR || status == BAD_GATEWAY_ERROR
-                    || status == SERVICE_UNAVAILABLE_ERROR || status == GATEWAY_TIMEOUT_ERROR) {
-                return new RetryableException(status, response.reason(), response.request().httpMethod(),
-                        (Long) null, response.request());
+            if (status != REQUEST_LIMITING_ERROR && status != INTERNAL_SERVER_ERROR && status != BAD_GATEWAY_ERROR
+                    && status != SERVICE_UNAVAILABLE_ERROR && status != GATEWAY_TIMEOUT_ERROR) {
+                return decodedException;
             }
-            return errorDecoder.decode(methodKey, response);
+            if (decodedException instanceof RetryableException) {
+                return decodedException;
+            }
+            return new RetryableException(status, decodedException.getMessage(), response.request().httpMethod(),
+                    (Long) null, response.request()
+            );
         };
     }
 
     @Bean
     public Retryer retryer() {
-        return new Retryer.Default(1000, 10000, 3);
+        return new Retryer.Default(PERIOD_MS, MAX_PERIOD_MS, NUM_OF_ATTEMPTS);
     }
 }

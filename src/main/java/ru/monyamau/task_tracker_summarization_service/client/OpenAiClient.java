@@ -4,12 +4,14 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import ru.monyamau.task_tracker_summarization_service.config.OpenAiFeignConfig;
 import ru.monyamau.task_tracker_summarization_service.domain.OpenAiRequest;
 import ru.monyamau.task_tracker_summarization_service.domain.OpenAiResponse;
 
 @FeignClient(
         name = "openAiClient",
-        url = "${llm.url}"
+        url = "${llm.url}",
+        configuration = OpenAiFeignConfig.class
 )
 public interface OpenAiClient {
     @PostMapping(value = "${llm.endpoint}",
