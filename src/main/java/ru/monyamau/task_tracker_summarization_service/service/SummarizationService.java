@@ -23,6 +23,8 @@ import java.util.List;
 @Slf4j
 @Service
 public class SummarizationService {
+    private static final int MAX_CHAR_COUNT = 2500;
+
     private final OpenAiClient openAiClient;
     private final String model;
 
@@ -37,6 +39,7 @@ public class SummarizationService {
         List<TaskPromptContent> convertedTasks = requestDto.tasks().stream()
                 .map(this::convert)
                 .toList();
+        validateCountOfCharacters(convertedTasks);
         Message constructedPrompt = PromptUtil
                 .constructPrompt(convertedTasks, countOfCompletedTasks, countOfUncompletedTasks);
         OpenAiResponse clientCompletion = handleCompletionCreating(new OpenAiRequest(model, List.of(constructedPrompt)));
@@ -60,6 +63,12 @@ public class SummarizationService {
             throw new UnexpectedLlmResponseException("Не удалось получить корректный ответ от LLM ресурса");
         }
         return completion;
+    }
+
+    private void validateCountOfCharacters(List<TaskPromptContent> tasks) {
+        if (tasks.toString().length() > MAX_CHAR_COUNT) {
+            throw new IllegalArgumentException("Слишком большой объём символов у текущего списка задач");
+        }
     }
 
     private long countTasksByStatus(boolean isReady, List<TaskRequestDto> tasks) {
