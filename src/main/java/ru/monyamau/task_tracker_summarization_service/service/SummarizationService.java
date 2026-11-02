@@ -1,6 +1,7 @@
 package ru.monyamau.task_tracker_summarization_service.service;
 
 import feign.FeignException;
+import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,8 @@ import ru.monyamau.task_tracker_summarization_service.dto.request.PersonalTaskCo
 import ru.monyamau.task_tracker_summarization_service.dto.request.TaskRequestDto;
 import ru.monyamau.task_tracker_summarization_service.dto.response.PersonalReportResponseDto;
 import ru.monyamau.task_tracker_summarization_service.exception.LlmClientException;
+import ru.monyamau.task_tracker_summarization_service.exception.UnavailableLlmRequestException;
+import ru.monyamau.task_tracker_summarization_service.exception.UnexpectedLlmResponseException;
 import ru.monyamau.task_tracker_summarization_service.util.PromptUtil;
 
 import java.util.List;
@@ -29,23 +32,40 @@ public class SummarizationService {
     }
 
     public PersonalReportResponseDto summarize(PersonalTaskCollectionRequestDto requestDto) {
-        List<TaskPromptContent> convertedTasks = requestDto.tasks()
-                .stream()
+        long countOfUncompletedTasks = countTasksByStatus(false, requestDto.tasks());
+        long countOfCompletedTasks = countTasksByStatus(true, requestDto.tasks());
+        List<TaskPromptContent> convertedTasks = requestDto.tasks().stream()
                 .map(this::convert)
                 .toList();
-        Message constructedPrompt = PromptUtil.constructPrompt(convertedTasks);
+        Message constructedPrompt = PromptUtil
+                .constructPrompt(convertedTasks, countOfCompletedTasks, countOfUncompletedTasks);
         OpenAiResponse clientCompletion = handleCompletionCreating(new OpenAiRequest(model, List.of(constructedPrompt)));
         String contentResponse = clientCompletion.choices().getFirst().message().content();
         return new PersonalReportResponseDto(requestDto.userEmail(), contentResponse);
     }
 
     private OpenAiResponse handleCompletionCreating(OpenAiRequest openAiRequest) {
+        OpenAiResponse completion;
         try {
-            return openAiClient.createCompletion(openAiRequest);
+            completion = openAiClient.createCompletion(openAiRequest);
+        } catch (RetryableException e) {
+            throw new UnavailableLlmRequestException("LLM недоступна для сетевых запросов", e);
         } catch (FeignException e) {
-            log.error("Не удалось реализовать отчёт для пользователя при попытке обращения к LLM", e);
             throw new LlmClientException("Возникла ошибка при попытке обращения к LLM API", e);
         }
+        if (completion == null || completion.choices() == null || completion.choices().isEmpty()
+                || completion.choices().getFirst().message() == null
+                || completion.choices().getFirst().message().content() == null
+                || completion.choices().getFirst().message().content().isBlank()) {
+            throw new UnexpectedLlmResponseException("Не удалось получить корректный ответ от LLM ресурса");
+        }
+        return completion;
+    }
+
+    private long countTasksByStatus(boolean isReady, List<TaskRequestDto> tasks) {
+        return tasks.stream()
+                .filter(task -> task.isReady() == isReady)
+                .count();
     }
 
     private TaskPromptContent convert(TaskRequestDto taskDto) {
