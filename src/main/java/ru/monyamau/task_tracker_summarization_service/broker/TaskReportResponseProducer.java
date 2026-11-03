@@ -7,8 +7,6 @@ import ru.monyamau.task_tracker_summarization_service.dto.response.PersonalRepor
 import ru.monyamau.task_tracker_summarization_service.exception.TaskReportPublisherException;
 
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 @Component
 public class TaskReportResponseProducer {
@@ -22,12 +20,10 @@ public class TaskReportResponseProducer {
 
     public void publishReport(PersonalReportResponseDto responseDto) {
         try {
-            kafkaTemplate.send(topic, responseDto).get(5, TimeUnit.SECONDS);
+            kafkaTemplate.send(topic, responseDto).get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new TaskReportPublisherException("Попытка публикации задачи о реализации отчёта в Kafka была прервана", e);
-        } catch (TimeoutException e) {
-            throw new TaskReportPublisherException("Не удалось получить подтверждение от Kafka о получении задачи о реализации отчёта", e);
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
             throw new TaskReportPublisherException("Не удалось опубликовать задачу о реализации отчёта в Kafka", cause);
