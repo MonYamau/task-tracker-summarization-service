@@ -2,9 +2,6 @@ package ru.monyamau.task_tracker_summarization_service.util;
 
 import lombok.experimental.UtilityClass;
 import ru.monyamau.task_tracker_summarization_service.domain.Message;
-import ru.monyamau.task_tracker_summarization_service.domain.TaskPromptContent;
-
-import java.util.List;
 
 @UtilityClass
 public class PromptUtil {
@@ -38,9 +35,10 @@ public class PromptUtil {
             isReady – статус выполнения задачи (true – выполнена, false – не выполнена):
             """;
 
-    public static Message constructPrompt(List<TaskPromptContent> tasks,
+    public static Message constructPrompt(String formattedTasks,
                                           long countOfCompletedTasks, long countOfUncompletedTasks) {
+
         return new Message(PROMPT_ROLE, BASE_PROMPT +
-                PERSONAL_PROMPT.formatted(countOfCompletedTasks, countOfUncompletedTasks) + tasks.toString());
+                PERSONAL_PROMPT.formatted(countOfCompletedTasks, countOfUncompletedTasks) + formattedTasks);
     }
 }

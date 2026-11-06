@@ -17,6 +17,7 @@ import ru.monyamau.task_tracker_summarization_service.exception.LlmClientExcepti
 import ru.monyamau.task_tracker_summarization_service.exception.UnavailableLlmRequestException;
 import ru.monyamau.task_tracker_summarization_service.exception.UnexpectedLlmResponseException;
 import ru.monyamau.task_tracker_summarization_service.util.PromptUtil;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -25,10 +26,12 @@ import java.util.List;
 public class SummarizationService {
     private static final int MAX_CHAR_COUNT = 2500;
 
+    private final ObjectMapper objectMapper;
     private final OpenAiClient openAiClient;
     private final String model;
 
-    public SummarizationService(OpenAiClient openAiClient, @Value("${llm.model}") String model) {
+    public SummarizationService(ObjectMapper objectMapper, OpenAiClient openAiClient, @Value("${llm.model}") String model) {
+        this.objectMapper = objectMapper;
         this.openAiClient = openAiClient;
         this.model = model;
     }
@@ -39,9 +42,9 @@ public class SummarizationService {
         List<TaskPromptContent> convertedTasks = requestDto.tasks().stream()
                 .map(this::convert)
                 .toList();
-        validateCountOfCharacters(convertedTasks);
-        Message constructedPrompt = PromptUtil
-                .constructPrompt(convertedTasks, countOfCompletedTasks, countOfUncompletedTasks);
+        String jsonFormatTasks = objectMapper.writeValueAsString(convertedTasks);
+        validateCountOfCharacters(jsonFormatTasks);
+        Message constructedPrompt = PromptUtil.constructPrompt(jsonFormatTasks, countOfCompletedTasks, countOfUncompletedTasks);
         OpenAiResponse clientCompletion = handleCompletionCreating(new OpenAiRequest(model, List.of(constructedPrompt)));
         String contentResponse = clientCompletion.choices().getFirst().message().content();
         return new PersonalReportResponseDto(requestDto.userEmail(), contentResponse);
@@ -65,8 +68,8 @@ public class SummarizationService {
         return completion;
     }
 
-    private void validateCountOfCharacters(List<TaskPromptContent> tasks) {
-        if (tasks.toString().length() > MAX_CHAR_COUNT) {
+    private void validateCountOfCharacters(String formattedTasks) {
+        if (formattedTasks.length() > MAX_CHAR_COUNT) {
             throw new IllegalArgumentException("Слишком большой объём символов у текущего списка задач");
         }
     }
