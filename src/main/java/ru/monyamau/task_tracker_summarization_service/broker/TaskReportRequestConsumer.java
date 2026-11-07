@@ -1,30 +1,25 @@
 package ru.monyamau.task_tracker_summarization_service.broker;
 
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Component;
 import ru.monyamau.task_tracker_summarization_service.dto.request.PersonalTaskCollectionRequestDto;
 import ru.monyamau.task_tracker_summarization_service.dto.response.PersonalReportResponseDto;
 import ru.monyamau.task_tracker_summarization_service.service.SummarizationService;
 
-@Slf4j
 @Component
 public class TaskReportRequestConsumer {
     private final SummarizationService summarizationService;
-    private final TaskReportResponseProducer responseProducer;
 
-    public TaskReportRequestConsumer(SummarizationService summarizationService, TaskReportResponseProducer responseProducer) {
+    public TaskReportRequestConsumer(SummarizationService summarizationService) {
         this.summarizationService = summarizationService;
-        this.responseProducer = responseProducer;
     }
 
     @KafkaListener(topics = "${kafka.topics.request}")
-    public void consume(@Valid @Payload PersonalTaskCollectionRequestDto requestDto) {
-        log.info("Успешно получена задача на генерацию отчёта для {}", requestDto.userEmail());
-        PersonalReportResponseDto responseDto = summarizationService.summarize(requestDto);
-        responseProducer.publishReport(responseDto);
-        log.info("Успешно опубликована задача со сгенерированным отчётом для пользователя {}", requestDto.userEmail());
+    @SendTo
+    public PersonalReportResponseDto consume(@Valid @Payload PersonalTaskCollectionRequestDto requestDto) {
+        return summarizationService.summarize(requestDto);
     }
 }
