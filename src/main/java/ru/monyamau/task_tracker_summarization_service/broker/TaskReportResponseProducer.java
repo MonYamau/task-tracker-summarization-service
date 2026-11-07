@@ -1,5 +1,6 @@
 package ru.monyamau.task_tracker_summarization_service.broker;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
@@ -13,7 +14,9 @@ public class TaskReportResponseProducer {
     private final KafkaTemplate<String, PersonalReportResponseDto> kafkaTemplate;
     private final String topic;
 
-    public TaskReportResponseProducer(KafkaTemplate<String, PersonalReportResponseDto> kafkaTemplate, @Value("${kafka.topics.response}") String topic) {
+    public TaskReportResponseProducer(
+            @Qualifier("responseKafkaTemplate") KafkaTemplate<String, PersonalReportResponseDto> kafkaTemplate,
+            @Value("${kafka.topics.response}") String topic) {
         this.kafkaTemplate = kafkaTemplate;
         this.topic = topic;
     }
