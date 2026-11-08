@@ -37,7 +37,6 @@ public class PromptUtil {
 
     public static Message constructPrompt(String formattedTasks,
                                           long countOfCompletedTasks, long countOfUncompletedTasks) {
-
         return new Message(PROMPT_ROLE, BASE_PROMPT +
                 PERSONAL_PROMPT.formatted(countOfCompletedTasks, countOfUncompletedTasks) + formattedTasks);
     }
