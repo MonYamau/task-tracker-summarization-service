@@ -47,7 +47,7 @@ public class SummarizationService {
         Message constructedPrompt = PromptUtil.constructPrompt(jsonFormatTasks, countOfCompletedTasks, countOfUncompletedTasks);
         OpenAiResponse clientCompletion = handleCompletionCreating(new OpenAiRequest(model, List.of(constructedPrompt)));
         String contentResponse = clientCompletion.choices().getFirst().message().content();
-        return new PersonalReportResponseDto(contentResponse);
+        return new PersonalReportResponseDto(contentResponse, false);
     }
 
     private OpenAiResponse handleCompletionCreating(OpenAiRequest openAiRequest) {
