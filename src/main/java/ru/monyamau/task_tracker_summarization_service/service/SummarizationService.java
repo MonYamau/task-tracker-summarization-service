@@ -44,7 +44,8 @@ public class SummarizationService {
                 .toList();
         String jsonFormatTasks = objectMapper.writeValueAsString(convertedTasks);
         validateCountOfCharacters(jsonFormatTasks);
-        Message constructedPrompt = PromptUtil.constructPrompt(jsonFormatTasks, countOfCompletedTasks, countOfUncompletedTasks);
+        Message constructedPrompt = PromptUtil.constructPrompt(
+                jsonFormatTasks, countOfCompletedTasks, countOfUncompletedTasks, requestDto.unaccountedTasksCount());
         OpenAiResponse clientCompletion = handleCompletionCreating(new OpenAiRequest(model, List.of(constructedPrompt)));
         String contentResponse = clientCompletion.choices().getFirst().message().content();
         return new PersonalReportResponseDto(contentResponse, false);
