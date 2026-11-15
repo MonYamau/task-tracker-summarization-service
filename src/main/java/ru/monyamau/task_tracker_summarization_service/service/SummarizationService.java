@@ -24,7 +24,7 @@ import java.util.List;
 @Slf4j
 @Service
 public class SummarizationService {
-    private static final int MAX_CHAR_COUNT = 2500;
+    private static final int MAX_CHAR_COUNT = 12000;
 
     private final ObjectMapper objectMapper;
     private final OpenAiClient openAiClient;
